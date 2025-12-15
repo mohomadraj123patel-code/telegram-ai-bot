@@ -1,0 +1,53 @@
+import os
+import logging
+import google.generativeai as genai
+from telegram import Update
+from telegram.ext import (
+    ApplicationBuilder,
+    ContextTypes,
+    MessageHandler,
+    CommandHandler,
+    filters
+)
+
+# ================== KEYS (YAHAN KEY DALO) ==================
+TELEGRAM_BOT_TOKEN = "8227971586:AAEGtWdW0Zqjf2SOgdEk8Os0YVWya1PqoC0"
+GEMINI_API_KEY = "0536564764"
+# ===========================================================
+
+# Logging
+logging.basicConfig(level=logging.INFO)
+
+# Gemini setup
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel("gemini-pro")
+
+# Start command
+async def start(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    await update.message.reply_text(
+        "🤖 Gemini AI Bot Live hai!\n\nKuch bhi message bhejo."
+    )
+
+# Message reply
+async def reply(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    try:
+        user_text = update.message.text
+        response = model.generate_content(user_text)
+        await update.message.reply_text(response.text)
+    except Exception as e:
+        await update.message.reply_text("⚠️ Error aaya, thoda baad try karo.")
+
+# Main function
+def main():
+    app = ApplicationBuilder().token(TELEGRAM_BOT_TOKEN).build()
+
+    app.add_handler(CommandHandler("start", start))
+    app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, reply))
+
+    print("Bot running...")
+    app.run_polling()
+
+if __name__ == "__main__":
+    main()
+    
+
